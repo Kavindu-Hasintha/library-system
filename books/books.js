@@ -7,6 +7,10 @@ app.use(bodyParser.json());
 
 // Load mongoose
 const mongoose = require("mongoose");
+
+require("./BookModel");
+const Book = mongoose.model("Book");
+
 mongoose
   .connect(
     "mongodb+srv://library-user:library-user@library-cluster.6mi0646.mongodb.net/"
@@ -23,8 +27,48 @@ app.get("/", (req, res) => {
 });
 
 app.post("/book", (req, res) => {
-  console.log(req.body);
-  res.send("Your data received! (" + req.body.title + ")");
+  var newBook = {
+    title: req.body.title,
+    author: req.body.author,
+    numberPages: req.body.numberPages,
+    publisher: req.body.publisher,
+  };
+
+  // Create a new Book
+  var book = new Book(newBook);
+
+  book
+    .save()
+    .then(() => {
+      res.send("Successfully inserted");
+    })
+    .catch((err) => {
+      res.send(err);
+    });
+});
+
+app.get("/getbooks", (req, res) => {
+  Book.find()
+    .then((response) => {
+      res.json(response);
+    })
+    .catch((err) => {
+      res.send(err);
+    });
+});
+
+app.get("/getbook/:id", (req, res) => {
+  Book.findById(req.params.id)
+    .then((book) => {
+      if (book) {
+        res.json(book);
+      } else {
+        res.send("Book not found");
+      }
+    })
+    .catch((err) => {
+      res.sendStatus(404);
+    });
 });
 
 app.listen(8080, () => {
